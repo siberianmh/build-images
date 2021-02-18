@@ -1,0 +1,25 @@
+name: Build and push Copybara OCI image
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    - cron: '0 1 * * *'
+
+jobs:
+  copybara:
+    runs-on: ubuntu-20.04
+    if: github['ref'] == 'refs/heads/master'
+
+    steps:
+      - name: Checkout google/copybara repository
+        uses: actions/checkout@v2
+        with:
+          repository: google/copybara
+      - name: Build Image
+        run: |
+          echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u pacificocean-bot --password-stdin
+          docker build --pull -f "Dockerfile" -t ghcr.io/siberianmh/build-images/copybara:latest .
+      - name: Publish image
+        run: |
+          docker push ghcr.io/siberianmh/build-images/copybara:latest
